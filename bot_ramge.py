@@ -3,7 +3,10 @@
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
+from requests.exceptions import Timeout, ConnectionError
+from urllib3.exceptions import ProtocolError
 
+import logging
 import datetime
 import json
 import requests
@@ -101,7 +104,11 @@ if __name__=="__main__":
     listener = TwitterListener()
     stream = Stream(auth, listener)
 
-    stream.filter(follow=["1549889018"])
-
-
-
+    while not stream.running:
+        try:
+            logging.info("Start to listen twitter stream")
+            stream.filter(follow=["1549889018"])
+        except (Timeout, ConnectionResetError, ConnectionError,ProtocolError) as e:
+            logging.warning("Network error. Continue...")
+        except Exception as e:
+            logging.error("Unexpected error", e)
