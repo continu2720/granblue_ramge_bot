@@ -64,10 +64,28 @@ def authorize():
 
     return auth
 
+def from_creator(status):
+    if hasattr(status, 'retweeted_status'):
+        return False
+    elif status.in_reply_to_status_id != None:
+        return False
+    elif status.in_reply_to_screen_name != None:
+        return False
+    elif status.in_reply_to_user_id != None:
+        return False
+    else:
+        return True 
+
 class TwitterListener(StreamListener):
-    def on_data(self, data):
-        json_data = json.loads(data)
-        line_message(json_data['text'])
+
+    def on_status(self, status):
+        if from_creator(status):
+            try:
+                line_message(status.text)
+                return True
+            except BaseException as e:
+                print("Error on_data %s" % str(e))
+            return True
         return True
 
     def on_error(self,status):
